@@ -466,6 +466,7 @@
             border-radius: 8px;
             color: white;
             cursor: pointer;
+            margin: 10px;
         }
 
         @media (max-width: 768px) {
@@ -536,28 +537,46 @@
         
         async function initMessenger(username) {
             try {
-                const response = await fetch(`${API_URL}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login: username, password: '' })
-                });
+                // Берём пользователя из localStorage, а не с сервера
+                const users = JSON.parse(localStorage.getItem('volits_users')) || [];
+                currentUser = users.find(u => u.login === username);
                 
-                const data = await response.json();
-                if (data.status === 'ok') {
-                    currentUser = data.user;
+                if (!currentUser) {
+                    // Если нет в localStorage - пробуем получить с сервера
+                    const response = await fetch(`${API_URL}/api/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ login: username, password: '' })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.status === 'ok') {
+                        currentUser = data.user;
+                        // Сохраняем в localStorage
+                        const existingUsers = JSON.parse(localStorage.getItem('volits_users')) || [];
+                        if (!existingUsers.find(u => u.login === currentUser.login)) {
+                            existingUsers.push(currentUser);
+                            localStorage.setItem('volits_users', JSON.stringify(existingUsers));
+                        }
+                    } else {
+                        throw new Error('User not found');
+                    }
+                }
+                
+                if (currentUser) {
                     renderMessenger();
                     startPolling();
                 } else {
-                    localStorage.removeItem('volits_session');
-                    window.location.href = '/login/';
+                    throw new Error('Не удалось загрузить пользователя');
                 }
             } catch (error) {
                 console.error('Error initializing messenger:', error);
                 const container = document.getElementById('messengerContainer');
                 container.innerHTML = `
                     <div class="error-message">
-                        <p>❌ Не удалось загрузить данные пользователя</p>
-                        <button class="retry-btn" onclick="location.reload()">🔄 Попробовать снова</button>
+                        <p>❌ Не удалось загрузить данные</p>
+                        <button class="retry-btn" onclick="logout()">🚪 Выйти и войти заново</button>
+                        <button class="retry-btn" onclick="location.reload()">🔄 Обновить</button>
                     </div>
                 `;
             }
