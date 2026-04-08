@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOLits — Вход в аккаунт</title>
+    <title>VOLits — Регистрация</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -37,16 +37,18 @@
             padding: 20px;
         }
 
-        .login-card {
+        .register-card {
             background: rgba(11, 13, 21, 0.8);
             backdrop-filter: blur(20px);
             border-radius: 32px;
             padding: 48px;
             width: 100%;
-            max-width: 480px;
+            max-width: 520px;
             border: 1px solid rgba(124, 58, 237, 0.3);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             animation: fadeInUp 0.6s ease;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         @keyframes fadeInUp {
@@ -109,6 +111,44 @@
             transform: translateY(-2px);
         }
 
+        .avatar-section {
+            text-align: center;
+        }
+
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #7c3aed;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .avatar-preview:hover {
+            transform: scale(1.05);
+            border-color: #06b6d4;
+        }
+
+        .avatar-label {
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(124, 58, 237, 0.3);
+            border: 1px solid rgba(124, 58, 237, 0.5);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .avatar-label:hover {
+            background: rgba(124, 58, 237, 0.5);
+            transform: translateY(-2px);
+        }
+
         .captcha-group {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
@@ -153,20 +193,20 @@
             cursor: not-allowed;
         }
 
-        .register-link {
+        .login-link {
             text-align: center;
             margin-top: 24px;
             color: #9ca3af;
         }
 
-        .register-link a {
+        .login-link a {
             color: #7c3aed;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s ease;
         }
 
-        .register-link a:hover {
+        .login-link a:hover {
             color: #06b6d4;
             text-decoration: underline;
         }
@@ -178,6 +218,17 @@
             padding: 12px;
             margin-bottom: 20px;
             color: #fca5a5;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #6ee7b7;
             font-size: 14px;
             text-align: center;
         }
@@ -195,26 +246,49 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .register-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .register-card::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .register-card::-webkit-scrollbar-thumb {
+            background: #7c3aed;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
     <canvas id="canvas-bg"></canvas>
     
     <div class="container">
-        <div class="login-card">
-            <h1 class="title">✨ Добро пожаловать</h1>
-            <div class="subtitle">Войдите в свой аккаунт VOLits</div>
+        <div class="register-card">
+            <h1 class="title">🚀 Создать аккаунт</h1>
+            <div class="subtitle">Присоединяйтесь к VOLits сообществу</div>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
+            <div id="successMessage" class="success-message" style="display: none;"></div>
             
             <div class="input-group">
                 <label>👤 Логин</label>
-                <input type="text" id="username" placeholder="Введите ваш логин" autocomplete="username">
+                <input type="text" id="username" placeholder="Придумайте логин" autocomplete="username">
             </div>
             
             <div class="input-group">
                 <label>🔒 Пароль</label>
-                <input type="password" id="password" placeholder="Введите пароль" autocomplete="current-password">
+                <input type="password" id="password" placeholder="Придумайте пароль" autocomplete="new-password">
+            </div>
+            
+            <div class="avatar-section">
+                <label>🖼️ Аватар (необязательно)</label>
+                <div class="avatar-preview" id="avatarPreview" onclick="document.getElementById('avatarInput').click()" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=default')"></div>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                <div class="avatar-label" onclick="document.getElementById('avatarInput').click()">
+                    📸 Выбрать фото
+                </div>
             </div>
             
             <div class="captcha-group">
@@ -222,10 +296,10 @@
                 <input type="text" id="captchaInput" placeholder="Введите слово выше" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; color: white; text-align: center;">
             </div>
             
-            <button class="btn-primary" id="loginBtn" onclick="login()">Войти в аккаунт</button>
+            <button class="btn-primary" id="registerBtn" onclick="register()">Зарегистрироваться</button>
             
-            <div class="register-link">
-                Нет аккаунта? <a href="/register/">Создать аккаунт</a>
+            <div class="login-link">
+                Уже есть аккаунт? <a href="/login/">Войти</a>
             </div>
         </div>
     </div>
@@ -233,6 +307,7 @@
     <script>
         const API_URL = window.location.origin;
         const captchaWords = ["МОСКВА", "ВОЛГА", "ДРУЖБА", "КОСМОС", "РОССИЯ", "СВОБОДА", "РАКЕТА", "VOLITS"];
+        let selectedAvatar = null;
         
         function generateCaptcha() {
             const word = captchaWords[Math.floor(Math.random() * captchaWords.length)];
@@ -249,15 +324,47 @@
             }, 3000);
         }
         
-        async function login() {
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    selectedAvatar = event.target.result;
+                    document.getElementById('avatarPreview').style.backgroundImage = `url('${selectedAvatar}')`;
+                    document.getElementById('avatarPreview').style.backgroundSize = 'cover';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        async function register() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             const captchaInput = document.getElementById('captchaInput').value.trim().toUpperCase();
             const captchaWord = document.getElementById('captchaWord').textContent;
-            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
             
             if (!username || !password) {
                 showError('❌ Заполните все поля');
+                return;
+            }
+            
+            if (username.length < 3) {
+                showError('❌ Логин должен содержать минимум 3 символа');
+                return;
+            }
+            
+            if (password.length < 4) {
+                showError('❌ Пароль должен содержать минимум 4 символа');
                 return;
             }
             
@@ -268,52 +375,40 @@
                 return;
             }
             
-            // Блокируем кнопку и показываем загрузку
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<div class="loader"></div> Вход...';
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<div class="loader"></div> Регистрация...';
             
             try {
-                const response = await fetch(`${API_URL}/api/login`, {
+                const response = await fetch(`${API_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login: username, password: password })
+                    body: JSON.stringify({
+                        login: username,
+                        password: password,
+                        avatar: selectedAvatar || ''
+                    })
                 });
                 
                 const data = await response.json();
                 
                 if (data.status === 'ok') {
-                    // Сохраняем пользователя в массив, а не перезаписываем
-                    const existingUsers = JSON.parse(localStorage.getItem('volits_users')) || [];
-                    const userIndex = existingUsers.findIndex(u => u.login === data.user.login);
-                    if (userIndex === -1) {
-                        existingUsers.push(data.user);
-                    } else {
-                        existingUsers[userIndex] = data.user;
-                    }
-                    localStorage.setItem('volits_users', JSON.stringify(existingUsers));
-                    
-                    // Сохраняем сессию
-                    localStorage.setItem('volits_session', JSON.stringify({
-                        user: data.user.login,
-                        expires: Date.now() + 7 * 24 * 60 * 60 * 1000
-                    }));
-                    
-                    // Редирект на главную
-                    window.location.href = '/';
+                    showSuccess('✅ Регистрация успешна! Перенаправление на вход...');
+                    setTimeout(() => {
+                        window.location.href = '/login/';
+                    }, 1500);
                 } else {
                     showError('❌ ' + data.message);
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = 'Войти в аккаунт';
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = 'Зарегистрироваться';
                 }
             } catch (error) {
-                console.error('Login error:', error);
+                console.error('Registration error:', error);
                 showError('❌ Ошибка соединения с сервером');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = 'Войти в аккаунт';
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = 'Зарегистрироваться';
             }
         }
         
-        // Canvas фон с частицами
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         
@@ -374,10 +469,9 @@
         animateParticles();
         generateCaptcha();
         
-        // Enter key support
         document.getElementById('password').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                login();
+                register();
             }
         });
     </script>
