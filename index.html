@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>VOLits Messenger — Общайтесь с комфортом</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .main-container {
+            width: 90%;
+            height: 90vh;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(11, 13, 21, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: containerGlow 0.8s ease;
+        }
+
+        @keyframes containerGlow {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+
+        @keyframes messageGlow {
+            0% { 
+                box-shadow: 0 0 0 rgba(124, 58, 237, 0);
+                transform: scale(0.95);
+            }
+            50% { 
+                box-shadow: 0 0 20px rgba(124, 58, 237, 0.8);
+                transform: scale(1.02);
+            }
+            100% { 
+                box-shadow: 0 0 0 rgba(124, 58, 237, 0);
+                transform: scale(1);
+            }
+        }
+
+        .message-bubble.message-new {
+            animation: messageGlow 0.6s ease;
+        }
+
+        .loader-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .loader {
+            text-align: center;
+        }
+
+        .loader-emoji {
+            font-size: 48px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .messenger-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Левая панель */
+        .chats-panel {
+            width: 320px;
+            background: rgba(11, 13, 21, 0.7);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(124, 58, 237, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-mini-profile {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-mini-profile:hover {
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .mini-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-size: cover;
+            border: 2px solid #10b981;
+            transition: transform 0.3s ease;
+        }
+
+        .search-area {
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 10px 12px;
+            gap: 8px;
+        }
+
+        .search-input-wrapper input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .global-search-btn {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .global-search-btn:hover {
+            transform: scale(1.05) rotate(90deg);
+        }
+
+        .chats-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .chat-item:hover {
+            background: rgba(124, 58, 237, 0.2);
+            transform: translateX(4px);
+        }
+
+        .chat-item.active {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(6, 182, 212, 0.3));
+            border-color: #7c3aed;
+            border-left: 3px solid #7c3aed;
+        }
+
+        .chat-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-size: cover;
+        }
+
+        /* Центральная панель */
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(11, 13, 21, 0.4);
+        }
+
+        .chat-header {
+            padding: 20px 24px;
+            background: rgba(11, 13, 21, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .chat-header-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-size: cover;
+            border: 2px solid #7c3aed;
+        }
+
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-wrapper {
+            display: flex;
+            gap: 12px;
+            animation: messageSlide 0.3s ease;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-wrapper.own {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-size: cover;
+        }
+
+        .message-bubble {
+            max-width: 60%;
+            padding: 12px 18px;
+            border-radius: 20px;
+        }
+
+        .message-wrapper.own .message-bubble {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            color: white;
+        }
+
+        .message-wrapper.other .message-bubble {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: #e5e7eb;
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: 6px;
+        }
+
+        .message-input-area {
+            padding: 20px 24px;
+            background: rgba(11, 13, 21, 0.6);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 28px;
+            padding: 8px 16px;
+        }
+
+        .message-input-wrapper input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 15px;
+            padding: 10px 0;
+            outline: none;
+        }
+
+        .input-icon {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .input-icon:hover:not(:disabled) {
+            background: rgba(124, 58, 237, 0.3);
+            transform: scale(1.1);
+        }
+
+        .input-icon:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Правая панель */
+        .profile-panel {
+            width: 360px;
+            background: rgba(11, 13, 21, 0.8);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(124, 58, 237, 0.2);
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            overflow-y: auto;
+        }
+
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-size: cover;
+            border: 3px solid #7c3aed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 16px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            width: 100%;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+            animation: modalFade 0.3s ease;
+        }
+
+        @keyframes modalFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: rgba(11, 13, 21, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 32px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            animation: modalSlide 0.4s ease;
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            text-align: center;
+            color: #ef4444;
+            padding: 40px;
+        }
+
+        .retry-btn {
+            margin-top: 16px;
+            padding: 8px 16px;
+            background: #7c3aed;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                width: 95%;
+                height: 95vh;
+            }
+            
+            .profile-panel {
+                position: absolute;
+                right: -100%;
+                transition: right 0.3s ease;
+                z-index: 10;
+            }
+            
+            .profile-panel.open {
+                right: 0;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #7c3aed;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+    
+    <div class="main-container">
+        <div id="messengerContainer" class="messenger-container">
+            <div class="loader-container">
+                <div class="loader">
+                    <div class="loader-emoji">🌎</div>
+                    <p>Загрузка VOLits...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let currentUser = null;
+        let currentChat = null;
+        let pollingInterval = null;
+        
+        // Проверка сессии
+        const session = localStorage.getItem('volits_session');
+        if (!session) {
+            window.location.href = '/login/';
+        } else {
+            const sessionData = JSON.parse(session);
+            if (sessionData.expires < Date.now()) {
+                localStorage.removeItem('volits_session');
+                window.location.href = '/login/';
+            } else {
+                initMessenger(sessionData.user);
+            }
+        }
+        
+        async function initMessenger(username) {
+            try {
+                const response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: username, password: '' })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    currentUser = data.user;
+                    renderMessenger();
+                    startPolling();
+                } else {
+                    localStorage.removeItem('volits_session');
+                    window.location.href = '/login/';
+                }
+            } catch (error) {
+                console.error('Error initializing messenger:', error);
+                const container = document.getElementById('messengerContainer');
+                container.innerHTML = `
+                    <div class="error-message">
+                        <p>❌ Не удалось загрузить данные пользователя</p>
+                        <button class="retry-btn" onclick="location.reload()">🔄 Попробовать снова</button>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderMessenger() {
+            const container = document.getElementById('messengerContainer');
+            const userAvatar = currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.login}`;
+            
+            container.innerHTML = `
+                <div class="chats-panel">
+                    <div class="user-mini-profile" onclick="openProfilePanel()">
+                        <div class="mini-avatar" id="miniAvatar" style="background-image: url('${userAvatar}')"></div>
+                        <div>
+                            <div style="font-weight: 600;">${escapeHtml(currentUser.login)}</div>
+                            <div style="font-size: 12px; color: #10b981;">● В сети</div>
+                        </div>
+                    </div>
+                    <div class="search-area">
+                        <div class="search-box">
+                            <div class="search-input-wrapper">
+                                <span>🔍</span>
+                                <input type="text" placeholder="Поиск чатов..." id="searchChat" oninput="filterChats()">
+                            </div>
+                            <button class="global-search-btn" onclick="openGlobalSearch()">🌐</button>
+                        </div>
+                    </div>
+                    <div class="chats-list" id="chatsList"></div>
+                </div>
+                
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <div class="chat-header-avatar" id="chatHeaderAvatar"></div>
+                            <div>
+                                <h3 id="chatName" style="font-family: 'Space Grotesk';">Выберите чат</h3>
+                                <div style="font-size: 12px; color: #9ca3af;" id="chatStatus"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="messages-area" id="messagesArea">
+                        <div style="text-align: center; color: #6b7280; padding: 40px;">✨ Выберите чат, чтобы начать общение</div>
+                    </div>
+                    <div class="message-input-area">
+                        <div class="message-input-wrapper">
+                            <input type="text" placeholder="Введите сообщение..." id="messageInput" onkeypress="if(event.key==='Enter') sendMessage()">
+                            <button class="input-icon" id="sendBtn" onclick="sendMessage()">📤</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-panel" id="profilePanel">
+                    <div class="avatar-preview" id="profileAvatar" style="background-image: url('${userAvatar}')"></div>
+                    <h2 id="profileName" style="font-family: 'Space Grotesk';">${escapeHtml(currentUser.login)}</h2>
+                    <button class="btn-primary" onclick="openEditAvatarModal()">🖼️ Сменить аватар</button>
+                    <div class="profile-info" style="width: 100%; background: rgba(0,0,0,0.3); padding: 16px; border-radius: 16px;">
+                        <p>📅 Регистрация: ${currentUser.registered || '2024'}</p>
+                        <p>💬 VOLits Messenger</p>
+                    </div>
+                    <button class="btn-primary" onclick="logout()" style="background: rgba(239,68,68,0.8);">🚪 Выйти</button>
+                </div>
+            `;
+            
+            loadChats();
+        }
+        
+        function renderErrorState(containerId, message, retryFunction) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ef4444;">
+                        <p>❌ ${message}</p>
+                        <button class="retry-btn" onclick="${retryFunction}">🔄 Попробовать снова</button>
+                    </div>
+                `;
+            }
+        }
+        
+        async function loadChats() {
+            const friends = currentUser.friends || [];
+            const chatsList = document.getElementById('chatsList');
+            
+            if (!chatsList) return;
+            
+            if (friends.length === 0) {
+                chatsList.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">🤝 Добавьте друзей, чтобы начать общение</div>';
+                return;
+            }
+            
+            chatsList.innerHTML = friends.map(friend => `
+                <div class="chat-item" data-friend="${escapeHtml(friend)}" onclick="selectChat('${escapeHtml(friend)}')">
+                    <div class="chat-avatar" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=${friend}')"></div>
+                    <div>
+                        <div style="font-weight: 600;">${escapeHtml(friend)}</div>
+                        <div style="font-size: 12px; color: #9ca3af;">Нажмите для чата</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function selectChat(friend) {
+            currentChat = friend;
+            
+            // Убираем active со всех чатов
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Добавляем active выбранному
+            const selectedChat = document.querySelector(`.chat-item[data-friend="${friend}"]`);
+            if (selectedChat) selectedChat.classList.add('active');
+            
+            const chatNameEl = document.getElementById('chatName');
+            const chatAvatarEl = document.getElementById('chatHeaderAvatar');
+            const chatStatusEl = document.getElementById('chatStatus');
+            
+            if (chatNameEl) chatNameEl.textContent = friend;
+            if (chatAvatarEl) chatAvatarEl.style.backgroundImage = `url('https://api.dicebear.com/7.x/avataaars/svg?seed=${friend}')`;
+            if (chatStatusEl) chatStatusEl.textContent = 'В сети';
+            
+            loadMessages();
+        }
+        
+        function filterChats() {
+            const searchInput = document.getElementById('searchChat');
+            if (!searchInput) return;
+            
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            document.querySelectorAll('.chat-item').forEach(item => {
+                const friendName = item.dataset.friend?.toLowerCase() || '';
+                item.style.display = (searchTerm === '' || friendName.includes(searchTerm)) ? 'flex' : 'none';
+            });
+        }
+        
+        async function loadMessages() {
+            if (!currentChat) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/get_messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: currentUser.login, with: currentChat })
+                });
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+                
+                const data = await response.json();
+                renderMessages(data.messages || []);
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                renderErrorState('messagesArea', 'Ошибка загрузки сообщений', 'loadMessages()');
+            }
+        }
+        
+        function renderMessages(messages) {
+            const messagesArea = document.getElementById('messagesArea');
+            
+            if (!messagesArea) return;
+            
+            if (messages.length === 0) {
+                messagesArea.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 40px;">💬 Напишите первое сообщение!</div>';
+                return;
+            }
+            
+            messagesArea.innerHTML = messages.map(msg => `
+                <div class="message-wrapper ${msg.from === currentUser.login ? 'own' : 'other'}">
+                    ${msg.from !== currentUser.login ? `<div class="message-avatar" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.from}')"></div>` : ''}
+                    <div class="message-bubble" data-message-id="${msg.id}">
+                        <div class="message-text">${escapeHtml(msg.text)}</div>
+                        <div class="message-time">${msg.time}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const text = input.value.trim();
+            
+            if (!text || !currentChat) return;
+            
+            if (sendBtn) {
+                sendBtn.disabled = true;
+                sendBtn.style.opacity = '0.5';
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/send_message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: currentUser.login,
+                        to: currentChat,
+                        message: text
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to send message');
+                
+                input.value = '';
+                await loadMessages();
+                
+                // Анимация для последнего сообщения
+                setTimeout(() => {
+                    const lastMessage = document.querySelector('.message-bubble:last-child');
+                    if (lastMessage) {
+                        lastMessage.classList.add('message-new');
+                        setTimeout(() => lastMessage.classList.remove('message-new'), 600);
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('❌ Не удалось отправить сообщение. Проверьте соединение.');
+            } finally {
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                }
+            }
+        }
+        
+        function openGlobalSearch() {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3 style="margin-bottom: 20px;">🌍 Поиск пользователей</h3>
+                    <input type="text" id="searchUsersInput" placeholder="Введите имя..." style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; color: white; margin-bottom: 20px;">
+                    <div id="searchUsersResults"></div>
+                    <button class="btn-primary" style="margin-top: 20px;" onclick="this.closest('.modal').remove()">Закрыть</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Закрытие по клику на фон
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+            
+            const searchInput = document.getElementById('searchUsersInput');
+            searchInput.addEventListener('input', () => searchUsers(searchInput.value));
+        }
+        
+        async function searchUsers(query) {
+            if (query.length < 2) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/search_users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, current_user: currentUser.login })
+                });
+                
+                if (!response.ok) throw new Error('Search failed');
+                
+                const data = await response.json();
+                const resultsDiv = document.getElementById('searchUsersResults');
+                
+                if (!resultsDiv) return;
+                
+                if (data.users.length === 0) {
+                    resultsDiv.innerHTML = '<div style="text-align: center; color: #6b7280;">👤 Пользователи не найдены</div>';
+                    return;
+                }
+                
+                resultsDiv.innerHTML = data.users.map(user => `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 8px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background-image: url('${user.avatar}'); background-size: cover;"></div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600;">${escapeHtml(user.login)}</div>
+                            <div style="font-size: 12px; color: ${user.status === 'online' ? '#10b981' : '#6b7280'};">${user.status === 'online' ? '● В сети' : '○ Оффлайн'}</div>
+                        </div>
+                        ${!user.is_friend ? `<button class="btn-primary" style="padding: 8px 16px;" onclick="sendFriendRequest('${user.login}')">➕ Добавить</button>` : '<span style="color: #10b981;">✓ Друг</span>'}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error searching users:', error);
+                const resultsDiv = document.getElementById('searchUsersResults');
+                if (resultsDiv) {
+                    resultsDiv.innerHTML = '<div style="text-align: center; color: #ef4444;">❌ Ошибка поиска</div>';
+                }
+            }
+        }
+        
+        async function sendFriendRequest(toUser) {
+            try {
+                const response = await fetch(`${API_URL}/api/send_friend_request`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ from: currentUser.login, to: toUser })
+                });
+                
+                if (!response.ok) throw new Error('Failed to send request');
+                
+                alert(`✅ Запрос дружбы отправлен пользователю ${toUser}`);
+                document.querySelector('.modal')?.remove();
+            } catch (error) {
+                console.error('Error sending friend request:', error);
+                alert('❌ Не удалось отправить запрос');
+            }
+        }
+        
+        function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            pollingInterval = setInterval(async () => {
+                if (!currentUser) return;
+                
+                try {
+                    const response = await fetch(`${API_URL}/api/poll`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: currentUser.login })
+                    });
+                    
+                    if (!response.ok) throw new Error('Polling failed');
+                    
+                    const data = await response.json();
+                    
+                    for (const event of data.events) {
+                        if (event.type === 'new_message') {
+                            if (currentChat === event.from) {
+                                await loadMessages();
+                                playNotificationSound();
+                            }
+                        } else if (event.type === 'friend_request') {
+                            handleFriendRequest(event.from, event.from_avatar);
+                            playNotificationSound();
+                        } else if (event.type === 'friend_accepted') {
+                            alert(`🎉 ${event.from} принял(а) ваш запрос в друзья!`);
+                            location.reload();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 3000);
+        }
+        
+        function playNotificationSound() {
+            // Простое уведомление без звука для кросс-браузерности
+            if (document.hidden) {
+                // Меняем заголовок для привлечения внимания
+                document.title = '🔔 Новое сообщение - VOLits';
+                setTimeout(() => {
+                    document.title = 'VOLits Messenger';
+                }, 3000);
+            }
+        }
+        
+        function handleFriendRequest(fromUser, avatar) {
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-image: url('${avatar}'); background-size: cover; margin: 0 auto 20px;"></div>
+                        <h3>🔔 Запрос в друзья</h3>
+                        <p style="margin: 20px 0;">Пользователь <strong>${escapeHtml(fromUser)}</strong> хочет добавить вас в друзья</p>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn-primary" onclick="acceptFriend('${fromUser}'); this.closest('.modal').remove()">✅ Принять</button>
+                            <button class="btn-primary" style="background: rgba(239,68,68,0.8);" onclick="this.closest('.modal').remove()">❌ Отклонить</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+        
+        async function acceptFriend(friend) {
+            try {
+                const response = await fetch(`${API_URL}/api/accept_friend`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user: currentUser.login, friend })
+                });
+                
+                if (!response.ok) throw new Error('Failed to accept friend');
+                
+                alert(`🎉 Вы и ${friend} теперь друзья!`);
+                location.reload();
+            } catch (error) {
+                console.error('Error accepting friend:', error);
+                alert('❌ Не удалось принять запрос');
+            }
+        }
+        
+        function openProfilePanel() {
+            const panel = document.getElementById('profilePanel');
+            if (panel) panel.classList.toggle('open');
+        }
+        
+        function openEditAvatarModal() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        const avatarBase64 = event.target.result;
+                        
+                        try {
+                            const response = await fetch(`${API_URL}/api/update_avatar`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ user: currentUser.login, avatar: avatarBase64 })
+                            });
+                            
+                            if (!response.ok) throw new Error('Failed to update avatar');
+                            
+                            // Обновляем в памяти
+                            currentUser.avatar = avatarBase64;
+                            
+                            // Обновляем в localStorage
+                            const users = JSON.parse(localStorage.getItem('volits_users')) || [];
+                            const userIndex = users.findIndex(u => u.login === currentUser.login);
+                            if (userIndex !== -1) {
+                                users[userIndex].avatar = avatarBase64;
+                                localStorage.setItem('volits_users', JSON.stringify(users));
+                            }
+                            
+                            // Обновляем отображение
+                            const profileAvatar = document.getElementById('profileAvatar');
+                            const miniAvatar = document.getElementById('miniAvatar');
+                            
+                            if (profileAvatar) profileAvatar.style.backgroundImage = `url('${avatarBase64}')`;
+                            if (miniAvatar) miniAvatar.style.backgroundImage = `url('${avatarBase64}')`;
+                            
+                            alert('✅ Аватар обновлен!');
+                        } catch (error) {
+                            console.error('Error updating avatar:', error);
+                            alert('❌ Не удалось обновить аватар');
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            input.click();
+        }
+        
+        async function logout() {
+            try {
+                await fetch(`${API_URL}/api/logout`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: currentUser.login })
+                });
+            } catch (error) {
+                console.error('Error logging out:', error);
+            }
+            
+            localStorage.removeItem('volits_session');
+            if (pollingInterval) clearInterval(pollingInterval);
+            window.location.href = '/login/';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Canvas фон с частицами
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        
+        // Создаем частицы ПОСЛЕ установки размеров canvas
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 3 + 1,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: (Math.random() - 0.5) * 0.5,
+                color: `rgba(124, 58, 237, ${Math.random() * 0.5})`
+            });
+        }
+        
+        function animateParticles() {
+            if (!ctx) return;
+            
+            ctx.fillStyle = 'rgba(11, 13, 21, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+            
+            requestAnimationFrame(animateParticles);
+        }
+        
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            // Обновляем позиции частиц при ресайзе
+            particles.forEach(p => {
+                p.x = Math.random() * canvas.width;
+                p.y = Math.random() * canvas.height;
+            });
+        });
+        
+        animateParticles();
+    </script>
+</body>
+</html>
