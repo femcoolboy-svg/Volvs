@@ -231,7 +231,9 @@
     </div>
 
     <script>
-        const API_URL = window.location.origin;
+        // ЖЁСТКИЙ URL ДЛЯ API
+        const API_URL = 'https://volvs.onrender.com';
+        
         const captchaWords = ["МОСКВА", "ВОЛГА", "ДРУЖБА", "КОСМОС", "РОССИЯ", "СВОБОДА", "РАКЕТА", "VOLITS"];
         
         function generateCaptcha() {
@@ -274,13 +276,17 @@
             try {
                 const response = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify({ login: username, password: password })
                 });
                 
                 const data = await response.json();
                 
                 if (data.status === 'ok') {
+                    // Сохраняем пользователя в массив
                     const existingUsers = JSON.parse(localStorage.getItem('volits_users')) || [];
                     const userIndex = existingUsers.findIndex(u => u.login === data.user.login);
                     if (userIndex === -1) {
@@ -290,6 +296,7 @@
                     }
                     localStorage.setItem('volits_users', JSON.stringify(existingUsers));
                     
+                    // Сохраняем сессию
                     localStorage.setItem('volits_session', JSON.stringify({
                         user: data.user.login,
                         expires: Date.now() + 7 * 24 * 60 * 60 * 1000
@@ -303,12 +310,13 @@
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showError('❌ Ошибка соединения с сервером');
+                showError('❌ Ошибка соединения с сервером: ' + error.message);
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = 'Войти в аккаунт';
             }
         }
         
+        // Canvas фон с частицами
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         
