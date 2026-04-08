@@ -305,7 +305,9 @@
     </div>
 
     <script>
-        const API_URL = window.location.origin;
+        // ЖЁСТКИЙ URL ДЛЯ API
+        const API_URL = 'https://volvs.onrender.com';
+        
         const captchaWords = ["МОСКВА", "ВОЛГА", "ДРУЖБА", "КОСМОС", "РОССИЯ", "СВОБОДА", "РАКЕТА", "VOLITS"];
         let selectedAvatar = null;
         
@@ -381,7 +383,10 @@
             try {
                 const response = await fetch(`${API_URL}/api/register`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify({
                         login: username,
                         password: password,
@@ -403,12 +408,13 @@
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                showError('❌ Ошибка соединения с сервером');
+                showError('❌ Ошибка соединения с сервером: ' + error.message);
                 registerBtn.disabled = false;
                 registerBtn.innerHTML = 'Зарегистрироваться';
             }
         }
         
+        // Canvas фон с частицами
         const canvas = document.getElementById('canvas-bg');
         const ctx = canvas.getContext('2d');
         
