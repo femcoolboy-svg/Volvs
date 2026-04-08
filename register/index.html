@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOLits — Регистрация</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: rgba(11, 13, 21, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, #c084fc, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 16px;
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
+
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            background-size: cover;
+            background-position: center;
+            border: 3px solid #7c3aed;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .avatar-preview:hover {
+            transform: scale(1.05);
+        }
+
+        .captcha-group {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .captcha-word {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.5);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #9ca3af;
+        }
+
+        .login-link a {
+            color: #7c3aed;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas-bg"></canvas>
+    
+    <div class="container">
+        <div class="register-card">
+            <h1 class="title">🚀 Создать аккаунт</h1>
+            
+            <div class="input-group">
+                <label>👤 Логин</label>
+                <input type="text" id="username" placeholder="Введите логин">
+            </div>
+            
+            <div class="input-group">
+                <label>🔒 Пароль</label>
+                <input type="password" id="password" placeholder="Введите пароль">
+            </div>
+            
+            <div class="input-group">
+                <label>🖼️ Аватар (необязательно)</label>
+                <div class="avatar-preview" id="avatarPreview" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=default')"></div>
+                <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                <button class="btn-primary" onclick="document.getElementById('avatarInput').click()" style="margin-top: 10px;">Выбрать фото</button>
+            </div>
+            
+            <div class="captcha-group">
+                <div class="captcha-word" id="captchaWord">МОСКВА</div>
+                <input type="text" id="captchaInput" placeholder="Введите слово выше" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; color: white;">
+            </div>
+            
+            <button class="btn-primary" onclick="register()">Зарегистрироваться</button>
+            
+            <div class="login-link">
+                Уже есть аккаунт? <a href="/login/">Войти</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        let selectedAvatar = null;
+        
+        const captchaWords = ["МОСКВА", "ВОЛГА", "ДРУЖБА", "КОСМОС", "РОССИЯ", "СВОБОДА", "РАКЕТА", "VOLITS"];
+        
+        function generateCaptcha() {
+            const word = captchaWords[Math.floor(Math.random() * captchaWords.length)];
+            document.getElementById('captchaWord').textContent = word;
+            return word;
+        }
+        
+        document.getElementById('avatarInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    selectedAvatar = event.target.result;
+                    document.getElementById('avatarPreview').style.backgroundImage = `url('${selectedAvatar}')`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        async function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const captchaInput = document.getElementById('captchaInput').value.trim().toUpperCase();
+            const captchaWord = document.getElementById('captchaWord').textContent;
+            
+            if (!username || !password) {
+                alert('❌ Заполните все поля');
+                return;
+            }
+            
+            if (captchaInput !== captchaWord) {
+                alert('❌ Неверная капча');
+                generateCaptcha();
+                document.getElementById('captchaInput').value = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        login: username,
+                        password: password,
+                        avatar: selectedAvatar
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    alert('✅ Регистрация успешна! Теперь войдите в систему.');
+                    window.location.href = '/login/';
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            } catch (error) {
+                alert('❌ Ошибка сервера');
+            }
+        }
+        
+        // Canvas фон с частицами
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 3 + 1,
+                speedX: (Math.random() - 0.5) * 0.5,
+                speedY: (Math.random() - 0.5) * 0.5,
+                color: `rgba(124, 58, 237, ${Math.random() * 0.5})`
+            });
+        }
+        
+        function animateParticles() {
+            ctx.fillStyle = 'rgba(11, 13, 21, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+            
+            requestAnimationFrame(animateParticles);
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animateParticles();
+        generateCaptcha();
+    </script>
+</body>
+</html>
