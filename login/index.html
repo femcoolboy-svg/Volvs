@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOLits — Вход</title>
+    <title>VOLits — Вход в аккаунт</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -16,6 +16,7 @@
             font-family: 'Inter', sans-serif;
             overflow: hidden;
             color: #fff;
+            min-height: 100vh;
         }
 
         #canvas-bg {
@@ -40,7 +41,7 @@
             background: rgba(11, 13, 21, 0.8);
             backdrop-filter: blur(20px);
             border-radius: 32px;
-            padding: 40px;
+            padding: 48px;
             width: 100%;
             max-width: 480px;
             border: 1px solid rgba(124, 58, 237, 0.3);
@@ -60,14 +61,21 @@
         }
 
         .title {
-            font-size: 32px;
-            margin-bottom: 32px;
+            font-size: 36px;
+            margin-bottom: 16px;
             text-align: center;
             font-family: 'Space Grotesk', sans-serif;
             background: linear-gradient(135deg, #c084fc, #06b6d4);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            margin-bottom: 32px;
+            font-size: 14px;
         }
 
         .input-group {
@@ -91,12 +99,14 @@
             color: white;
             font-size: 15px;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #7c3aed;
             box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+            transform: translateY(-2px);
         }
 
         .captcha-group {
@@ -108,14 +118,15 @@
         }
 
         .captcha-word {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
-            letter-spacing: 8px;
+            letter-spacing: 12px;
             background: linear-gradient(135deg, #7c3aed, #06b6d4);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
             margin-bottom: 15px;
+            font-family: 'Space Grotesk', monospace;
         }
 
         .btn-primary {
@@ -132,9 +143,14 @@
             font-family: 'Space Grotesk', sans-serif;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
 
         .register-link {
@@ -147,10 +163,37 @@
             color: #7c3aed;
             text-decoration: none;
             font-weight: 600;
+            transition: color 0.3s ease;
         }
 
         .register-link a:hover {
+            color: #06b6d4;
             text-decoration: underline;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #fca5a5;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -160,33 +203,35 @@
     <div class="container">
         <div class="login-card">
             <h1 class="title">✨ Добро пожаловать</h1>
+            <div class="subtitle">Войдите в свой аккаунт VOLits</div>
+            
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
             
             <div class="input-group">
                 <label>👤 Логин</label>
-                <input type="text" id="username" placeholder="Введите логин">
+                <input type="text" id="username" placeholder="Введите ваш логин" autocomplete="username">
             </div>
             
             <div class="input-group">
                 <label>🔒 Пароль</label>
-                <input type="password" id="password" placeholder="Введите пароль">
+                <input type="password" id="password" placeholder="Введите пароль" autocomplete="current-password">
             </div>
             
             <div class="captcha-group">
                 <div class="captcha-word" id="captchaWord">МОСКВА</div>
-                <input type="text" id="captchaInput" placeholder="Введите слово выше" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; color: white;">
+                <input type="text" id="captchaInput" placeholder="Введите слово выше" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; color: white; text-align: center;">
             </div>
             
-            <button class="btn-primary" onclick="login()">Войти</button>
+            <button class="btn-primary" id="loginBtn" onclick="login()">Войти в аккаунт</button>
             
             <div class="register-link">
-                Нет аккаунта? <a href="/register/">Зарегистрироваться</a>
+                Нет аккаунта? <a href="/register/">Создать аккаунт</a>
             </div>
         </div>
     </div>
 
     <script>
         const API_URL = window.location.origin;
-        
         const captchaWords = ["МОСКВА", "ВОЛГА", "ДРУЖБА", "КОСМОС", "РОССИЯ", "СВОБОДА", "РАКЕТА", "VOLITS"];
         
         function generateCaptcha() {
@@ -195,23 +240,37 @@
             return word;
         }
         
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 3000);
+        }
+        
         async function login() {
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             const captchaInput = document.getElementById('captchaInput').value.trim().toUpperCase();
             const captchaWord = document.getElementById('captchaWord').textContent;
+            const loginBtn = document.getElementById('loginBtn');
             
             if (!username || !password) {
-                alert('❌ Заполните все поля');
+                showError('❌ Заполните все поля');
                 return;
             }
             
             if (captchaInput !== captchaWord) {
-                alert('❌ Неверная капча');
+                showError('❌ Неверная капча');
                 generateCaptcha();
                 document.getElementById('captchaInput').value = '';
                 return;
             }
+            
+            // Блокируем кнопку и показываем загрузку
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<div class="loader"></div> Вход...';
             
             try {
                 const response = await fetch(`${API_URL}/api/login`, {
@@ -223,16 +282,34 @@
                 const data = await response.json();
                 
                 if (data.status === 'ok') {
+                    // Сохраняем пользователя в массив, а не перезаписываем
+                    const existingUsers = JSON.parse(localStorage.getItem('volits_users')) || [];
+                    const userIndex = existingUsers.findIndex(u => u.login === data.user.login);
+                    if (userIndex === -1) {
+                        existingUsers.push(data.user);
+                    } else {
+                        existingUsers[userIndex] = data.user;
+                    }
+                    localStorage.setItem('volits_users', JSON.stringify(existingUsers));
+                    
+                    // Сохраняем сессию
                     localStorage.setItem('volits_session', JSON.stringify({
-                        user: username,
+                        user: data.user.login,
                         expires: Date.now() + 7 * 24 * 60 * 60 * 1000
                     }));
+                    
+                    // Редирект на главную
                     window.location.href = '/';
                 } else {
-                    alert('❌ ' + data.message);
+                    showError('❌ ' + data.message);
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = 'Войти в аккаунт';
                 }
             } catch (error) {
-                alert('❌ Ошибка сервера');
+                console.error('Login error:', error);
+                showError('❌ Ошибка соединения с сервером');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = 'Войти в аккаунт';
             }
         }
         
@@ -246,18 +323,24 @@
         }
         
         const particles = [];
-        for (let i = 0; i < 100; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radius: Math.random() * 3 + 1,
-                speedX: (Math.random() - 0.5) * 0.5,
-                speedY: (Math.random() - 0.5) * 0.5,
-                color: `rgba(124, 58, 237, ${Math.random() * 0.5})`
-            });
+        
+        function initParticles() {
+            resizeCanvas();
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.5,
+                    speedY: (Math.random() - 0.5) * 0.5,
+                    color: `rgba(124, 58, 237, ${Math.random() * 0.5})`
+                });
+            }
         }
         
         function animateParticles() {
+            if (!ctx) return;
+            
             ctx.fillStyle = 'rgba(11, 13, 21, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -279,10 +362,24 @@
             requestAnimationFrame(animateParticles);
         }
         
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            particles.forEach(p => {
+                p.x = Math.random() * canvas.width;
+                p.y = Math.random() * canvas.height;
+            });
+        });
+        
+        initParticles();
         animateParticles();
         generateCaptcha();
+        
+        // Enter key support
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
     </script>
 </body>
 </html>
